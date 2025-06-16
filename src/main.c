@@ -15,9 +15,9 @@
 *
 ********************************************************************************************/
 
-#include "./double-jump.h"
+#include "./platformer.h"
 
 int main(void)
 {
-	double_jump_run();
+	platformer_run();
 }
