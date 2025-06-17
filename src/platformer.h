@@ -3,6 +3,8 @@
 #include "rlgl.h"
 
 #define G 400
+#define PLAYER_HEIGHT 40.0f
+#define PLAYER_WIDTH 40.0f
 #define PLAYER_JUMP_SPD 350.0f
 #define PLAYER_HOR_SPD 200.0f
 #define FONT_SIZE 20.0f
@@ -38,8 +40,8 @@ int platformer_run()
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+    const int screenWidth = 1920;
+    const int screenHeight = 1080;
 
     InitWindow(screenWidth, screenHeight, "raylib [core] example - 2d camera");
 
@@ -49,11 +51,18 @@ int platformer_run()
     player.jumpCount = 0;
 	player.jumpDebounce = 0;
     EnvItem envItems[] = {
-        {{ 0, 0, 1000, 400 }, 0, LIGHTGRAY },
-        {{ 0, 400, 1000, 200 }, 1, GRAY },
+        {{ -1100, 400, 1000, 100 }, 1, GRAY },
+        {{ -700, 200, 400, 10 }, 1, GRAY },
+        {{ -750, 300, 100, 10 }, 1, GRAY },
+        {{ -450, 300, 100, 10 }, 1, GRAY },
+        {{ 0, 400, 1000, 100 }, 1, GRAY },
         {{ 300, 200, 400, 10 }, 1, GRAY },
         {{ 250, 300, 100, 10 }, 1, GRAY },
-        {{ 650, 300, 100, 10 }, 1, GRAY }
+        {{ 650, 300, 100, 10 }, 1, GRAY },
+        {{ 1100, 400, 1000, 100 }, 1, GRAY },
+        {{ 1300, 200, 400, 10 }, 1, GRAY },
+        {{ 1250, 300, 100, 10 }, 1, GRAY },
+        {{ 1650, 300, 100, 10 }, 1, GRAY }
     };
 
     int envItemsLength = sizeof(envItems)/sizeof(envItems[0]);
@@ -127,13 +136,14 @@ int platformer_run()
 
                 for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
 
-                Rectangle playerRect = { player.position.x - 20, player.position.y - 40, 40.0f, 40.0f };
+                Rectangle playerRect = { player.position.x - 20, player.position.y - 40, PLAYER_WIDTH, PLAYER_HEIGHT };
                 DrawRectangleRec(playerRect, RED);
                 
                 DrawCircleV(player.position, 5.0f, GOLD);
 
             EndMode2D();
 
+            DrawText("- R to reset position", 20, 0, FONT_SIZE, DARKGRAY);
             DrawText("- C to change camera mode", 20, 20, FONT_SIZE, DARKGRAY);
             DrawText("Current camera mode:", 20, 40, FONT_SIZE, BLACK);
             DrawText(cameraDescriptions[cameraOption], 40, 60, FONT_SIZE, DARKGRAY);
@@ -228,10 +238,10 @@ void UpdateCameraCenterInsideMap(Camera2D *camera, Player *player, EnvItem *envI
     Vector2 max = GetWorldToScreen2D((Vector2){ maxX, maxY }, *camera);
     Vector2 min = GetWorldToScreen2D((Vector2){ minX, minY }, *camera);
 
-    if (max.x < width) camera->offset.x = width - (max.x - width/2);
-    if (max.y < height) camera->offset.y = height - (max.y - height/2);
-    if (min.x > 0) camera->offset.x = width/2 - min.x;
-    if (min.y > 0) camera->offset.y = height/2 - min.y;
+    if (max.x < width) camera->offset.x = width - (max.x - width/2) - PLAYER_WIDTH;
+    if (max.y < height) camera->offset.y = height - (max.y - height/2) - PLAYER_HEIGHT;
+    if (min.x > 0) camera->offset.x = width/2 - min.x + PLAYER_WIDTH;
+    if (min.y > 0) camera->offset.y = height/2 - min.y + PLAYER_HEIGHT;
 }
 
 void UpdateCameraCenterSmoothFollow(Camera2D *camera, Player *player, EnvItem *envItems, int envItemsLength, float delta, int width, int height)
