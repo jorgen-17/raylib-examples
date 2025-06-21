@@ -5,10 +5,12 @@
  ********************************************************************************************/
 
 // #include "./platformer.h"
-#include "./split-screen.h"
+// #include "./split-screen.h"
+#include "./pong.h"
 
 int main(void)
 {
 	// platformer_run();
-	split_screen_run();
+	// split_screen_run();
+	pong();
 }

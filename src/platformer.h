@@ -60,6 +60,7 @@ int platformer_run()
     player.speed = 0;
     player.jumpCount = 0;
     player.jumpDebounce = 0;
+
     EnvItem envItems[] = {
         {{-1100, 400, 1000, 100}, 1, GRAY},
         {{-700, 200, 400, 10}, 1, GRAY},
@@ -81,6 +82,7 @@ int platformer_run()
     camera.offset = (Vector2){screenWidth / 2.0f, screenHeight / 2.0f};
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
+
     // Store pointers to the multiple update camera functions
     void (*cameraUpdaters[])(Camera2D *, Player *, EnvItem *, int, float, int, int) = {
         UpdateCameraCenter,
