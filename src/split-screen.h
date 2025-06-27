@@ -6,21 +6,12 @@
  *   *******************************************************************************************/
 
 #include "raylib.h"
+#include "./math.h"
 
 #define PLAYER_SIZE 40
 #define FONT_SIZE 20.0f
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
-
-int max(int a, int b)
-{
-    return (a > b) ? a : b;
-}
-
-int min(int a, int b)
-{
-    return (a < b) ? a : b;
-}
 
 void UpdatePlayer1(Rectangle *player1, Rectangle *player2, Rectangle *player3, Rectangle *player4, RenderTexture *screenCamera1, Camera2D *camera1, int playerCount);
 void UpdatePlayer2(Rectangle *player1, Rectangle *player2, Rectangle *player3, Rectangle *player4, RenderTexture *screenCamera2, Camera2D *camera2, int playerCount);

@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include "./math.h"
 
 #define LIVES 3
 #define PLAYER_HEIGHT 15.0f
@@ -45,11 +46,6 @@ typedef struct State
 void ResetState(State *state, Ball *ball, Brick *bricks, int numberOfBricks);
 void UpdatePlayer(Rectangle *player, Ball *ball);
 void UpdateBall(Ball *ball, Rectangle *player, Rectangle *walls, Brick *bricks, int numberOfBricks, State *state);
-
-int abs(int x)
-{
-    return x < 0 ? x * -1 : x;
-}
 
 int brick_breaker()
 {
