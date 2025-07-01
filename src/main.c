@@ -6,13 +6,13 @@
 
 // #include "./platformer.h"
 // #include "./split-screen.h"
-// #include "./pong.h"
-#include "./brick_breaker.h"
+#include "./pong.h"
+// #include "./brick_breaker.h"
 
 int main(void)
 {
 	// platformer_run();
 	// split_screen_run();
-	// pong();
-	brick_breaker();
+	pong();
+	// brick_breaker();
 }

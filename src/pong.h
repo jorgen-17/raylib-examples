@@ -1,15 +1,18 @@
 #include "raylib.h"
+#include "./math.h"
 
 #define PLAYER_HEIGHT 100.0f
 #define PLAYER_WIDTH 10.0f
 #define WALL_THICKNESS 5.0f
 #define FONT_SIZE 20.0f
 #define SCORE_FONT_SIZE 40.0f
-#define MESSAGE_TIMER 2.0f
+#define MESSAGE_TIMER 3.0f
 #define WINNING_SCORE 5
 #define NUMBER_OF_WALLS 2
-#define INITIAL_BALL_SPEED_X 5.0f;
-#define INITIAL_BALL_SPEED_Y 4.0f;
+#define INITIAL_BALL_SPEED_X 6.0f
+#define INITIAL_BALL_SPEED_Y 4.0f
+#define PLAYER_SPEED 8.0f
+#define COMPUTER_SPEED 0.1f
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 
@@ -37,13 +40,13 @@ typedef struct Timers
 } Timers;
 
 void ResetBall(Ball *ball, bool player1Goal);
-void UpdatePlayer1(Rectangle *player1, int playerSpeed);
-void UpdatePlayer2(Rectangle *player2, Ball *ball, int playerSpeed, bool player2Computer);
+void UpdatePlayer1(Rectangle *player1);
+void UpdatePlayer2(Rectangle *player2, Ball *ball, bool player2Computer);
 void UpdateBall(Ball *ball, Rectangle *player1, Rectangle *player2, Rectangle *walls, Score *score);
 
 int pong()
 {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "raylib [core] example - 2d camera");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "pong");
 
     Rectangle player1 = {0};
     player1.x = 2;
@@ -101,8 +104,8 @@ int pong()
         if (IsKeyPressed(KEY_ENTER))
             player2Computer = !player2Computer;
 
-        UpdatePlayer1(&player1, playerSpeed);
-        UpdatePlayer2(&player2, &ball, playerSpeed, player2Computer);
+        UpdatePlayer1(&player1);
+        UpdatePlayer2(&player2, &ball, player2Computer);
         UpdateBall(&ball, &player1, &player2, walls, &score);
 
         BeginDrawing();
@@ -193,30 +196,34 @@ void ResetBall(Ball *ball, bool player1Goal)
     ball->speed.y = INITIAL_BALL_SPEED_Y;
 }
 
-void UpdatePlayer1(Rectangle *player1, int playerSpeed)
+void UpdatePlayer1(Rectangle *player1)
 {
     if (IsKeyDown(KEY_W) && player1->y > WALL_THICKNESS)
-        player1->y -= playerSpeed;
+        player1->y -= PLAYER_SPEED;
     if (IsKeyDown(KEY_S) && player1->y < SCREEN_HEIGHT - WALL_THICKNESS - player1->height)
-        player1->y += playerSpeed;
+        player1->y += PLAYER_SPEED;
 }
 
-void UpdatePlayer2(Rectangle *player2, Ball *ball, int playerSpeed, bool player2Computer)
+void UpdatePlayer2(Rectangle *player2, Ball *ball, bool player2Computer)
 {
     if (player2Computer)
     {
-        if (ball->position.y < SCREEN_HEIGHT - WALL_THICKNESS - player2->height / 2 && ball->position.y > player2->height / 2)
-            player2->y = ball->position.y - PLAYER_HEIGHT / 2;
-        // todo make platform move at uniform speed instead of basically following the speed of the ball
-        // also would probably look/work better if it only moved towards the ball while the ball was coming towards it
+        if (ball->position.y < SCREEN_HEIGHT - WALL_THICKNESS - (player2->height / 2 * COMPUTER_SPEED)
+            && ball->position.y > (player2->height / 2 * COMPUTER_SPEED))
+        {
+            float distance = ball->position.y - (player2->y + player2->height / 2);
+            float moveAmount = distance * COMPUTER_SPEED;
+            player2->y += moveAmount;
+        }
+        // would probably look/work better if it only moved towards the ball while the ball was coming towards it
         // when the ball is going away it should go towards SCREEN_HEIGHT / 2
     }
     else
     {
         if (IsKeyDown(KEY_UP) && player2->y > WALL_THICKNESS)
-            player2->y -= playerSpeed;
+            player2->y -= PLAYER_SPEED;
         if (IsKeyDown(KEY_DOWN) && player2->y < SCREEN_HEIGHT - WALL_THICKNESS - player2->height)
-            player2->y += playerSpeed;
+            player2->y += PLAYER_SPEED;
     }
 }
 
