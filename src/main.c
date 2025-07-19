@@ -4,15 +4,17 @@
  *
  ********************************************************************************************/
 
-// #include "./platformer.h"
+ // #include "./platformer.h"
 // #include "./split-screen.h"
-#include "./pong.h"
+// #include "./pong.h"
 // #include "./brick_breaker.h"
+#include "./snake.h"
 
 int main(void)
 {
 	// platformer_run();
 	// split_screen_run();
-	pong();
+	// pong();
 	// brick_breaker();
+	snake();
 }
