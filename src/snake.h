@@ -11,7 +11,9 @@
 #define SEGMENT_SIZE 20.0f
 #define SEGMENT_SPACING 10.0f
 #define SNAKE_SPEED (SEGMENT_SIZE + SEGMENT_SPACING) // distance snake covers each tick
-#define MAX_SEGMENTS (int)((SCREEN_WIDTH / SNAKE_SPEED) * (SCREEN_HEIGHT / SNAKE_SPEED)) // longest length snake can be
+#define NUM_ROWS (SCREEN_WIDTH / SNAKE_SPEED)
+#define NUM_COLUMNS (SCREEN_HEIGHT / SNAKE_SPEED)
+#define MAX_SEGMENTS (int)(NUM_ROWS * NUM_COLUMNS) // longest length snake can be
 #define COLLISION_SPACING ((FOOD_RADIUS + SEGMENT_SIZE / 2) / 2) // max spacing where collision is detected
 #define MESSAGE_TIMER 2.0f
 #define TICK_TIME 0.2f
@@ -195,5 +197,16 @@ void HandleSnakeFoodCollision(Snake *snake, Food *food)
 
         tail->next = nextSeg;
         snake->tail = nextSeg;
+
+        // f(x) = SNAKE_SPEED * x + FOOD_RADIUS where x can be from 0 to NUM_ROWS
+        int randomRow = GetRandomValue(0, NUM_ROWS - 1);
+        int newX = (SNAKE_SPEED * randomRow) + FOOD_RADIUS;
+        food->pos.x = newX;
+        // f(y) = SNAKE_SPEED * y + FOOD_RADIUS where y can be from 0 to NUM_COLUMNS
+        int randomColumn = GetRandomValue(0, NUM_COLUMNS - 1);
+        int newY = (SNAKE_SPEED * randomColumn) + FOOD_RADIUS;
+        food->pos.y = newY;
     }
 }
+
+// create function to move food to a random spot that is not occupied with snake segment
