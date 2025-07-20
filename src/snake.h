@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "raylib.h"
 
 #include "./math.h"
@@ -26,8 +27,8 @@ typedef struct Segment
 
 typedef struct Snake
 {
-    struct Segment *segments[MAX_SEGMENTS];
-    int tailIndex;
+    struct Segment *segments;
+    struct Segment *tail;
 } Snake;
 
 typedef struct Food
@@ -45,6 +46,7 @@ Vector2 Vector2Zero();
 Vector2 Vector2Scale(Vector2 v, float scale);
 Vector2 Vector2Add(Vector2 v1, Vector2 v2);
 Vector2 Vector2Multiply(Vector2 v1, Vector2 v2);
+Vector2 Vector2Negate(Vector2 v);
 bool Vector2Equals(Vector2 v1, Vector2 v2);
 float Vector2Distance(Vector2 v1, Vector2 v2);
 
@@ -52,20 +54,20 @@ int snake()
 {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "snake");
 
-    Segment head = {0};
-    head.pos = (Vector2){
+    Snake snake = {
+        .segments = malloc(MAX_SEGMENTS * sizeof(Segment)),
+        .tail = 0
+    };
+    Segment *head = &snake.segments[0];
+    head->pos = (Vector2){
         .x = SCREEN_WIDTH / 2,
         .y = SCREEN_HEIGHT / 2
     };
-    head.currDir = (Vector2){.x = -1, .y = 0}; // moving left
-    head.nextDir = Vector2Zero();
-    head.next = NULL;
-    head.prev = NULL;
-    Snake snake = {
-        .segments = {0},
-        .tailIndex = 0
-    };
-    snake.segments[0] = &head;
+    head->currDir = (Vector2){.x = -1, .y = 0}; // moving left
+    head->nextDir = Vector2Zero();
+    head->next = NULL;
+    head->prev = NULL;
+    snake.tail = head;
 
     Food food = {0};
     food.pos = (Vector2){.x = SCREEN_WIDTH / 4 + FOOD_RADIUS, .y = SCREEN_HEIGHT / 2 +  FOOD_RADIUS};
@@ -93,10 +95,13 @@ int snake()
 
         ClearBackground(DARKGRAY);
 
-        for (int i = 0; i <= snake.tailIndex; i++)
+        int index = 0;
+        Segment *current = &snake.segments[index];
+        while (current <= snake.tail)
         {
-            Segment *current = snake.segments[i];
             DrawRectangleRec((Rectangle){.x = current->pos.x, .y = current->pos.y, .width = SEGMENT_SIZE, .height = SEGMENT_SIZE}, GREEN);
+            index += sizeof(Segment);
+            current = &snake.segments[index];
         }
 
         DrawCircleV(food.pos, FOOD_RADIUS, GREEN);
@@ -109,7 +114,7 @@ int snake()
 
 void CheckInputs(Snake *snake)
 {
-    Segment *head = snake->segments[0];
+    Segment *head = &snake->segments[0];
     if ((IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A)) && head->currDir.x <= 0)
     {
         head->currDir.x = -1;
@@ -134,9 +139,10 @@ void CheckInputs(Snake *snake)
 
 void UpdateSnake(Snake *snake, Food *food)
 {
-    for (int i = 0; i <= snake->tailIndex; i++)
+    int index = 0;
+    Segment *current = &snake->segments[index];
+    while (current <= snake->tail)
     {
-        Segment *current = snake->segments[i];
         Vector2 zero = Vector2Zero();
         if (!Vector2Equals(current->nextDir, zero))
         {
@@ -148,10 +154,11 @@ void UpdateSnake(Snake *snake, Food *food)
         WrapAroundScreen(current);
         if (current->prev != NULL)
             current->nextDir = Vector2Equals(current->currDir, current->prev->currDir) ? zero : current->prev->currDir;
+        index += sizeof(Segment);
+        current = &snake->segments[index];
     }
     HandleSnakeFoodCollision(snake, food);
 }
-
 
 void WrapAroundScreen(Segment *segment)
 {
@@ -165,16 +172,28 @@ void WrapAroundScreen(Segment *segment)
         segment->pos.y = 0;
 }
 
-
 void HandleSnakeFoodCollision(Snake *snake, Food *food)
 {
     Vector2 snakeHeadCenter = {
-        .x = snake->segments[0]->pos.x + SEGMENT_SIZE / 2,
-        .y = snake->segments[0]->pos.y + SEGMENT_SIZE / 2,
+        .x = snake->segments[0].pos.x + SEGMENT_SIZE / 2,
+        .y = snake->segments[0].pos.y + SEGMENT_SIZE / 2,
     };
     int distance = Vector2Distance(snakeHeadCenter, food->pos);
     if (distance <= COLLISION_SPACING)
     {
         TraceLog(LOG_INFO, "snake collided with food");
+
+        Segment *tail = snake->tail;
+        Vector2 offset = Vector2Scale(Vector2Negate(tail->currDir), SNAKE_SPEED); 
+
+        Segment *nextSeg = snake->tail + sizeof(Segment);
+        nextSeg->pos = Vector2Add(tail->pos, offset);
+        nextSeg->currDir = tail->currDir;
+        nextSeg->nextDir = Vector2Zero();
+        nextSeg->next = NULL;
+        nextSeg->prev = tail;
+
+        tail->next = nextSeg;
+        snake->tail = nextSeg;
     }
 }
