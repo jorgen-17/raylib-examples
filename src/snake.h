@@ -42,6 +42,8 @@ void CheckInputs(Snake *snake);
 void UpdateSnake(Snake *snake, Food *food);
 void WrapAroundScreen(Segment *segment);
 void HandleSnakeFoodCollision(Snake *snake, Food *food);
+bool CheckSegmentFoodCollision(Segment segment, Food food);
+void MoveFoodOnceEaten(Snake *snake, Food *food);
 
 // manuall including raymath funtions here bc was getting an error including raymath.h
 Vector2 Vector2Zero();
@@ -176,12 +178,7 @@ void WrapAroundScreen(Segment *segment)
 
 void HandleSnakeFoodCollision(Snake *snake, Food *food)
 {
-    Vector2 snakeHeadCenter = {
-        .x = snake->segments[0].pos.x + SEGMENT_SIZE / 2,
-        .y = snake->segments[0].pos.y + SEGMENT_SIZE / 2,
-    };
-    int distance = Vector2Distance(snakeHeadCenter, food->pos);
-    if (distance <= COLLISION_SPACING)
+    if (CheckSegmentFoodCollision(snake->segments[0], *food))
     {
         TraceLog(LOG_INFO, "snake collided with food");
 
@@ -193,20 +190,59 @@ void HandleSnakeFoodCollision(Snake *snake, Food *food)
         nextSeg->currDir = tail->currDir;
         nextSeg->nextDir = Vector2Zero();
         nextSeg->next = NULL;
-        nextSeg->prev = tail;
+        nextSeg->prev = tail; // segmentation fault here when snake reaches length of 33
 
         tail->next = nextSeg;
         snake->tail = nextSeg;
 
-        // f(x) = SNAKE_SPEED * x + FOOD_RADIUS where x can be from 0 to NUM_ROWS
-        int randomRow = GetRandomValue(0, NUM_ROWS - 1);
-        int newX = (SNAKE_SPEED * randomRow) + FOOD_RADIUS;
-        food->pos.x = newX;
-        // f(y) = SNAKE_SPEED * y + FOOD_RADIUS where y can be from 0 to NUM_COLUMNS
-        int randomColumn = GetRandomValue(0, NUM_COLUMNS - 1);
-        int newY = (SNAKE_SPEED * randomColumn) + FOOD_RADIUS;
-        food->pos.y = newY;
+        MoveFoodOnceEaten(snake, food);
     }
 }
 
-// create function to move food to a random spot that is not occupied with snake segment
+bool CheckSegmentFoodCollision(Segment segment, Food food)
+{
+    Vector2 segmentCenter = {
+        .x = segment.pos.x + SEGMENT_SIZE / 2,
+        .y = segment.pos.y + SEGMENT_SIZE / 2,
+    };
+    int distance = Vector2Distance(segmentCenter, food.pos);
+
+    return distance <= COLLISION_SPACING;
+}
+
+void MoveFoodOnceEaten(Snake *snake, Food *food)
+{
+    bool spaceFound = false;
+    int newX = 10;
+    int newY = 10;
+
+    while (!spaceFound)
+    {
+        // f(x) = SNAKE_SPEED * x + FOOD_RADIUS where x can be from 0 to NUM_ROWS
+        int randomRow = GetRandomValue(0, NUM_ROWS - 1);
+        newX = (SNAKE_SPEED * randomRow) + FOOD_RADIUS;
+        // f(y) = SNAKE_SPEED * y + FOOD_RADIUS where y can be from 0 to NUM_COLUMNS
+        int randomColumn = GetRandomValue(0, NUM_COLUMNS - 1);
+        newY = (SNAKE_SPEED * randomColumn) + FOOD_RADIUS;
+
+        int index = 0;
+        Segment *current = &snake->segments[index];
+        while (current <= snake->tail)
+        {
+            Food newFood = {
+                .pos = (Vector2){newX, newY}
+            };
+            if(CheckSegmentFoodCollision(*current, newFood))
+                break;
+
+            index += sizeof(Segment);
+            current = &snake->segments[index];
+        }
+        if (current > snake->tail) // iterated through whole snake
+            spaceFound = true;
+        // else won the game?
+    }
+
+    food->pos.x = newX;
+    food->pos.y = newY;
+}
